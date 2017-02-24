@@ -1,0 +1,8 @@
+.there {
+  position: absolute;
+  visibility: visible;
+}
+
+.not-there {
+  visibility: hidden;
+}

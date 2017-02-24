@@ -1,0 +1,41 @@
+The Utilities Class is a namespace that extracts methods that are used by multiple Classes with Active Edit.
+
+#setAttributes 
+
+purpose: It applies a collection of attribute values to a DOM element.
+
+parameters: el (A DOM element)
+            attrs (An object containing the attributes (keys) and values (values) to be applied to the DOM element passed as the first parameter)
+
+process: The method cycles through each attribute and value in the passed `attrs` object and uses the DOM manipulation method setAttribute to add each pair to the element.
+
+#setStyles
+
+purpose: It applies a set of style rules to a DOM element.  It is intended only to set the absolute position of an element.  Specifically, when a cell is active, the position of the cell is acquired by calling the #position method, which returns an object with the cell's position parameters.  This is passed to #setStyles along with the @control element, which is an element that allows for input.  #setStyles then applies the positioning styles to the @control element, so that the input field appears exactly where the cell is, which is a visual reinforcement of the cell being edited in place.
+
+parameters: el (A DOM element (@control most often))
+            styles (An object containing the positional information of the active cell)
+
+process: The method cycles through each style property and its associated value passed in the `styles` object and changes the value of each position key in the `style` key (which is an object) associated with the element object.  Because we are getting the position of the current cell from the DOM element method #getBoundingClientRect, the values are integers and must be converted to strings with "px" appended.
+
+#clearActiveCells
+
+purpose: Users can select a range of cells to be active.  When they trigger certain events, such as activating a new cell, the currently active cells need to be cleared.  The cells themselves need to have "active" removed from their classList.  Also, the instance of GridEdit maintains two arrays with active cells listed: `redCells` (uneditable active cells) and `activeCells`.  These arrays need to be emptied.  Further, the input field that is bound to the previously active cells needs to be deactivated and the table's `selectionStart`, `selectionEnd`, `selectedCol` keys need to be reset and the `ContextMenu` associated with the previously active cells "hidden".
+
+parameter: table (a GridEdit instance)
+
+process: Each cell and the selected column have #makeInactive methods which are called.  The `activeCell`s also have a #hideControl function which is called.  The `redCells` and `activeCells` arrays are manually set to empty arrays and the `selectionStart` and `selectionEnd` keys are manually set to null.  The ContextMenu associated with the table has a #hide method which is called.  
+
+(Note: I do not know of a reason why an element in the red or active arrays would be set to null or undefined, but we check for existence before calling their clearing methods. I figure we check for the existence of a selected column before we #makeInactive because clearActiveCells could be called when there were no current active cells.  This does not apply to the red and active cell arrays, because we check for them to be non-empty before we cycle through them.)
+
+#capitalize
+
+purpose: Capitalizes a string.
+
+parameter: string (string)
+
+process: Sends the string to lower case then calls a replace with the first letter being sent to a function sending it to upper case.  Returns the string.
+
+(I am not sure I completely understand the replace method here.)
+          
+  
