@@ -1,59 +1,59 @@
 class ActiveEdit
   constructor: (@config) ->
-#    @element = document.querySelectorAll(@config.element || '#gridedit')[0]
-#    @headers = []
-#    @rows = []
-#    @cols = []
-#    @source = @config.rows
-#    @redCells = []
-#    @activeCells = []
-#    @copiedCells = []
-#    @copiedValues = []
-#    @selectionStart = null
-#    @selectionEnd = null
-#    @selectedCol = null
-#    @openCell = null
-#    @state = "ready"
-#    @mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-#    @topOffset = if not @config.topOffset then 0 else @config.topOffset
-#    @cellStyles =
-#      activeColor: "#FFE16F"
-#      uneditableColor: "#FFBBB3"
-#    if @config.custom
-#      @set key, value for key, value of @config.custom when key of @config.custom
-#      delete @config.custom
-#    do @init if @config.initialize
-#    @contextMenu = new ContextMenu ['cut', 'copy', 'paste', 'undo', 'fill'], @
-#  init: ->
-#    do @config.beforeInit if @config.beforeInit
-#    do @build
-#    do @events
-#    do @render
-#    do @config.afterInit if @config.afterInit
-#    return
-#  build: ->
-#    # Build Table Header
-#    tr = document.createElement 'tr'
-#    for colAttributes, i in @config.cols
-#      col = new Column(colAttributes, @)
-#      @cols.push col
-#      tr.appendChild col.element
-#    thead = document.createElement 'thead'
-#    thead.appendChild tr
-#
-#    # Build Table Body
-#    tbody = document.createElement 'tbody'
-#    for rowAttributes, i in @source
-#      row = new Row rowAttributes, @
-#      @rows.push row
-#      tbody.appendChild row.element
-#
-#    #Build Table
-#    table = document.createElement 'table'
-#    Utilities::setAttributes table, {id: 'editable-grid', class: @config.tableClass}
-#    table.appendChild thead
-#    table.appendChild tbody
-#    @tableEl = table
+    @element = document.querySelectorAll(@config.element || '#activeedit')[0]
+    @headers = []
+    @rows = []
+    @cols = []
+    @source = @config.rows
+    @redCells = []
+    @activeCells = []
+    @copiedCells = []
+    @copiedValues = []
+    @selectionStart = null
+    @selectionEnd = null
+    @selectedCol = null
+    @openCell = null
+    @state = "ready"
+    @mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    @topOffset = if not @config.topOffset then 0 else @config.topOffset
+    @cellStyles =
+      activeColor: "#FFE16F"
+      uneditableColor: "#FFBBB3"
+    if @config.custom
+      @set key, value for key, value of @config.custom when key of @config.custom
+      delete @config.custom
+    do @init if @config.initialize
+    @contextMenu = new ContextMenu ['cut', 'copy', 'paste', 'undo', 'fill'], @
+  init: ->
+    do @config.beforeInit if @config.beforeInit
+    do @build
+    do @events
+    do @render
+    do @config.afterInit if @config.afterInit
+    return
+  build: ->
+    # Build Table Header
+    tr = document.createElement 'tr'
+    for colAttributes, i in @config.cols
+      col = new Column(colAttributes, @)
+      @cols.push col
+      tr.appendChild col.element
+    thead = document.createElement 'thead'
+    thead.appendChild tr
+
+    # Build Table Body
+    tbody = document.createElement 'tbody'
+    for rowAttributes, i in @source
+      row = new Row rowAttributes, @
+      @rows.push row
+      tbody.appendChild row.element
+
+    #Build Table
+    table = document.createElement 'table'
+    Utilities::setAttributes table, {id: 'editable-grid', class: @config.tableClass}
+    table.appendChild thead
+    table.appendChild tbody
+    @tableEl = table
 #  rebuild: (newConfig=null) ->
 #    config = Object.create @config
 #    if newConfig isnt null
@@ -61,62 +61,62 @@ class ActiveEdit
 #        if newConfig[option] then config[option] = newConfig[option]
 #    do @destroy
 #    @constructor config
-#  events: ->
-#    table = @
-#    moveTo = table.moveTo
-#    edit = table.edit
-#    document.onkeydown = (e) ->
-#      if table.activeCell()
-#        key = e.keyCode
-#        shift = e.shiftKey
-#        ctrl = e.ctrlKey
-#        cmd = e.metaKey
-#        valueFromKey = (key, shift) ->
-#          char = String.fromCharCode key
-#          if not shift then char.toLowerCase() else char
-#        openCellAndPopulateInitialValue = -> if not table.openCell then table.activeCell().showControl(valueFromKey key, shift)
-#        switch key
-#          when 39 # right arrow
-#            if not table.activeCell().isBeingEdited()
-#              moveTo table.nextCell()
-#          when 9
-#            if shift then moveTo table.previousCell() else moveTo table.nextCell()
-#          when 37 then moveTo table.previousCell()
-#          when 38 then moveTo table.aboveCell()
-#          when 40 then moveTo table.belowCell()
-#          when 32 # space
-#            if not table.openCell then edit table.activeCell()
-#          when 67
-#            if cmd or ctrl then table.contextMenu.copy() else openCellAndPopulateInitialValue()
-#          when 86
-#            if cmd or ctrl then table.contextMenu.paste() else openCellAndPopulateInitialValue()
-#          when 88
-#            if cmd or ctrl then table.contextMenu.cut() else openCellAndPopulateInitialValue()
-#          when 90
-#            if cmd or ctrl then table.contextMenu.undo() else openCellAndPopulateInitialValue()
-#          when 13 then break
-#          when 16 then break
-#          when 17 then break
-#          when 91 then break
-#          when 8
-#            if not table.openCell
-#              e.preventDefault()
-#              table.delete()
-#          when 46
-#            if not table.openCell
-#              e.preventDefault()
-#              table.delete()
-#          else
-#            key = key-48 if key in [96..111] # For numpad
-#            openCellAndPopulateInitialValue()
-#    window.onresize = -> Utilities::setStyles table.openCell.control, table.openCell.position() if table.openCell
-#    window.onscroll = -> table.openCell.reposition() if table.openCell
-#    @tableEl.oncontextmenu = (e) -> false
-#    document.onclick = (e) -> Utilities::clearActiveCells table unless (table.isDescendant e.target) or (e.target is table.activeCell()?.control)
+  events: ->
+    table = @
+    moveTo = table.moveTo
+    edit = table.edit
+    document.onkeydown = (e) ->
+      if table.activeCell()
+        key = e.keyCode
+        shift = e.shiftKey
+        ctrl = e.ctrlKey
+        cmd = e.metaKey
+        valueFromKey = (key, shift) ->
+          char = String.fromCharCode key
+          if not shift then char.toLowerCase() else char
+        openCellAndPopulateInitialValue = -> if not table.openCell then table.activeCell().showControl(valueFromKey key, shift)
+        switch key
+          when 39 # right arrow
+            if not table.activeCell().isBeingEdited()
+              moveTo table.nextCell()
+          when 9
+            if shift then moveTo table.previousCell() else moveTo table.nextCell()
+          when 37 then moveTo table.previousCell()
+          when 38 then moveTo table.aboveCell()
+          when 40 then moveTo table.belowCell()
+          when 32 # space
+            if not table.openCell then edit table.activeCell()
+          when 67
+            if cmd or ctrl then table.contextMenu.copy() else openCellAndPopulateInitialValue()
+          when 86
+            if cmd or ctrl then table.contextMenu.paste() else openCellAndPopulateInitialValue()
+          when 88
+            if cmd or ctrl then table.contextMenu.cut() else openCellAndPopulateInitialValue()
+          when 90
+            if cmd or ctrl then table.contextMenu.undo() else openCellAndPopulateInitialValue()
+          when 13 then break
+          when 16 then break
+          when 17 then break
+          when 91 then break
+          when 8
+            if not table.openCell
+              e.preventDefault()
+              table.delete()
+          when 46
+            if not table.openCell
+              e.preventDefault()
+              table.delete()
+          else
+            key = key-48 if key in [96..111] # For numpad
+            openCellAndPopulateInitialValue()
+    window.onresize = -> Utilities::setStyles table.openCell.control, table.openCell.position() if table.openCell
+    window.onscroll = -> table.openCell.reposition() if table.openCell
+    @tableEl.oncontextmenu = (e) -> false
+    document.onclick = (e) -> Utilities::clearActiveCells table unless (table.isDescendant e.target) or (e.target is table.activeCell()?.control)
 #  render: ->
 #    @element = document.querySelectorAll(@config.element || '#gridedit')[0] if @element.hasChildNodes()
 #    @element.appendChild @tableEl
-#  set: (key, value) -> @config[key] = value if key isnt undefined
+  set: (key, value) -> @config[key] = value if key isnt undefined
 #  getCell: (x, y) -> @rows[x].cells[y]
 #  activeCell: -> if @activeCells.length > 1 then @activeCells else @activeCells[0]
 #  nextCell: -> @activeCell()?.next()

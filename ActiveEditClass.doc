@@ -1,0 +1,84 @@
+ActiveEdit Class
+
+  purpose: It is basically the controller for the interface.  It receives the data from the user input (the config parameter), creates and populates the interface.
+
+#constructor
+
+  purpose: The data table to be edited is passed into the class via the config object.  The constructor initializes the object for the classes use.
+
+  parameter: config (an object containing the data to be displayed and edited, as well as any pertinent information regarding that data)
+
+List of initialization variables:
+
+  `element`: This is the DOM element that ActiveEdit uses to anchor the interface.  It's identifier is passed in the config object with key `element`.  If no element is passed, its default is `#activeedit`.  `document.querySelectorAll` is used to capture the element, giving the user freedom to identify the element as they see fit.
+
+  `rows`: This is the data.  It is passed in the `config` object with key `rows`.  It is an array of objects containing the values for each record in the database table.
+
+  `cols`: This is passed in through the `config` object with key `cols`. It is an array of column objects. A col object can be passed in with several options (keys):
+        `label`: The header information.
+        `type`: `string`, `number`, `date`, `html`, `select`
+        `valueKey`: The record may not use the label as the key for the value in this column.  This is the key the record does use. 
+        `editable`: A boolean which indicates whether or not the values in the column can be edited.
+        `cellClass`: All cells in each column will be given a `class` attribute for css styling.  Said attribute name is stored here.
+        `format`: A function callback for formatting the data.  For example, if a value needs to be shown as a currency, a callback function can be passed that takes the value as a parameter and appends the '$' and returns the resulting string.
+
+  `source`: This is a variable to isolate the data itself.  It is set to `config.rows`.  I am assuming that `rows` will get a copy of the source.  Perhaps this is just storing a copy of the original data?
+
+  `redCells`: This is an array that is populated with cells that are selected by the end user, but are not editable (see `cols`).  It is cleared when a new selection is made or the current selection is cancelled.
+
+  `activeCells`: This is an array that is populated with cells that are selected by the end user and are editable (see `cols`).  It is cleared when a new selection is made or the current selection is cancelled.
+
+  `copiedCells`: This is an array that holds a copy of the active cells.  When #cut or #copy is called, it is populated.
+
+  `copiedValues`: This is an array that holds the values of copied cells.  The copied cells cannot be pasted to a new area because the cells have positional information. (Do I have that right?)  So the values in the cells needs to be extracted and stored for pasting into a different set of cells.  Also, in a #cut action, the cells that previously held the information are immediately reset to empty (which at the moment is method I do not quite grok.)
+
+  `selectionStart`: This a variable to record the first cell in an active selection (the one that is clicked first or is active when a keyboard selection is made?). Initialized to `null`.
+
+  `selectionEnd`: This is a variable to record the last cell in an active selection (on mouse up or keyboard selection end?). Initialized to `null`.
+
+  `selectedCol`: This is a variable to record the column of the `selectionStart` cell.  Initialized to `null`.
+
+  `openCell`: I think this variable stores the currently active cell, the one the input field will be currently bound to.  It is initially set to `null`.
+
+  `state`: This is a binary variable that holds a string (intended possible values: 'ready' or 'selecting').  When the user is selecting multiple cells (there does not appear to be a keyboard method at this time for multiple selection), the mouse button is held down.  On mouse down, the `state` is set to 'selecting' so that each cell hovered over will become a selected cell.  Once the mouse button is released, the `state` returns to 'ready'.
+
+  `mobile`: This is a variable that records the result of a test of the device the user is viewing the app on.  I assume the `navigator.userAgent` returns a string that indicates what the device is.  The long `/.../i.test` expression is a regular expression with a #test method that checks to see if any of the strings between the pipes match the `user.Agent` string.  The `i` indicates case insensitivity.  The expression returns `true` if any of the devices listed are the end user's device. This is for formatting purposes.  (I am attempting to stay away from terms such as, 'This is OBVIOUSLY for formatting purposes', because beginning users and developers do not always know this stuff and that kind of language is a barrier to entry.)
+
+  'topOffset': This is a variable that stores the user defined offset of the table from the top of the viewing window(guessing).  If the user does not pass in a value in the config object, its default is 0.
+
+  `cellStyles`: A variable that records an object that stipulates the color of `activeCell`s and `redCell`s (`redCells` are not editable).
+
+  `contextMenu`: This variable stores an instance of the Context Menu, which I believe is the drop down menu which populates with available edit options for a cell.  Because the ContextMenu Class is not yet translated to ts, I will leave it commented out.
+
+  'tableEl': This stores the html element that contains the editable grid created in the #build method.  It is the raison of ActiveEdit.
+
+  Note: This may be obvious to seasoned devs, but all instance properties are initialized in the constructor in coffeescript and outside of the constructor in typescript(except for parameters).  However, we have some conditional operations in ActiveEdit that must go inside the constructor.  Namely, if the user includes a `custom` key in the `config` object that is passed to an `ActiveEdit` instance, then upon initialization the kye/value pairs in the object that is the value of the `custom` key are converted to key/value pairs in `config` and the `custom` key is deleted.  This is the conditional in the constructor and it uses the #set method that is only called within this conditional in the code.  The #set method takes key and value parameters and specifically adds that key/value pair to the `config` object if the key does not already exist in `config`.  I am not sure that either the conditional nor the #set method are necessary because the `config` object itself is 100% generated by the user, so why not just have the user define the `config` object with the `custom` key/value pairs already extracted into the the main body of the `config` object instead of extracting it with these bits of code upon initialization?
+
+#init
+
+  purpose: #init is called (from the constructor) upon instantiation provided the user does not set `initialize` to `false` in `config` (why the user would do this and why we are providing that option escapes me at the moment, but perhaps there are good reasons.)  As this is written now, if the user does not include an `initialization` key set to anything that evaluates to `true`, then the table will not be built and rendered.  So, if ActiveEdit is going to be used, which is presumably the point, then we are writing code that makes the user specifically state they want to use the code they are taking the trouble to import.  This seems obfusticating and could easily be missed by users.  If we did need to give the user the ability to instantiate without building and rendering, then it makes more sense to me to have `init`1 run by default and let users know to add an `initialize` key set to `false` if they did not want to build for some reason.  I made an executive decision and refactored the conditional so that `init` is run by default and is only not run if the user includes a `doNotInitialize` key set to `true` in the `config` object.
+
+  purpose: #init is called unless the user sets a `doNotInitialize` key to `true` in the `config`.   It checks for any user defined pre or post init callbacks, calls the #build method to build the table, calls the #events method to add event listeners, and calls the #render method to append the table to the view.  It takes no parameters and the only logic it performs is to check for callbacks in the `config`.  #init explicitly calls a `return` in the coffeescript, but it seems like it would return in any case.  Am I confused about where this return sends the code versus its normal exit return?
+
+#build
+
+  purpose: Constructs an html table element based on the data provided by the user and populates that table element with the data appropriately.
+
+  //Build Table Header Section
+
+    purpose: It reads the `cols` object passed in the `config` parameter from the user and creates the header row of the table.
+
+    process: It uses #document.createElement to create a `tr` (table row).  It then cycles through the array of column information that is the value in the `cols` key in the `config` object that was passed by the user into the instance of ActiveEdit.  Each object in the array will represent a record property and its key/value pairs will presumably contain all pertinent information about the table column.  For each record property represented in the `cols` array, a Column is instantiated and then pushed onto the `this.cols` array, which is not the `cols` array from the config.  The user passes in the column information in a js object in config.  This pare ot the build method takes that information, instantiates actual column objects and then pushes them onto the ActiveEdit instance variable `cols` array. The Column Class is primarily a constructor for a `th` tagged html element (a table header element), which said element the value of one of the properties of the Column Class.  The loop then appends this element to the table row created previously.  Finally a `thead` element is created and the header `tr` that was just populated is appended to it.
+
+  //Build Table Body Section
+
+    purpose: It reads the `source` proptery object, which has been copied from the `config` `rows` property, and creates the body of the table with each item in the `source` array converted to a row in the body.
+
+    process: It creates an element of tbody type, then cycles through the user given records which have been copied to `this.source`.  It instantiates each record as a Row, then pushes each Row instance onto `this.rows`.  Each Row instance is initialized with an `element` property which stores an html element created as a `tr` taggeed element.  That element is then appended to the tbody element created first.
+
+  //Build Table Section
+
+    purpose: To combine Header and Body sections into one Table and assign the table to `this.tableEl`.
+
+    process: It creates an html table element, uses the #setAttributes method from the Utilities Class (a namespace) to set the id to "editable-grid" and the class to a user defined className (from `config`), if applicable.  Then it appends the `thead` and `tbody` elements to the `table` element before assigning the `table` element to `this.tableEl`.
+
